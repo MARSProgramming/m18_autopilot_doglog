@@ -10,12 +10,13 @@ https://doglog.dev/
 
 AdvantageKit, while offering robust simulation and replay capabilities, offers complexity that we will likely not take advantage of in the following season. This intent of this project is to reduce development time while also understanding how to write extremely efficient code, and DogLog will allow us to do just that. One MAJOR advantage of DogLog is being able to quick-access logs through a USB stick. This is extremely appealing as we will not have to remain plugged in to the Robot and rely on the RIO for file storage. 
 
-DogLog does not natively support logging Poses, so we will utilize the AdvantageKit fallback:
 
 # Goals
 1. Write a much more refined version of competition Marvin 18 code
 2. Implement Autopilot from therekrab (3414)
 3. Implement DogLog
+
+DogLog does not natively support logging Poses, so we will utilize the AdvantageKit fallback:
 
 ```
 Pose2d poseA = new Pose2d();
