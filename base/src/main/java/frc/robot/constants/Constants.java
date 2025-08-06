@@ -11,6 +11,9 @@ import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathConstraints;
+import com.therekrab.autopilot.APConstraints;
+import com.therekrab.autopilot.APProfile;
+import com.therekrab.autopilot.Autopilot;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -111,7 +114,16 @@ public final class Constants {
     }
 
     public static class AutopilotConstants {
+        private static final APConstraints kConstraints = new APConstraints()
+            .withAcceleration(5.0)
+            .withJerk(2.0);
 
+    private static final APProfile kProfile = new APProfile(kConstraints)
+            .withErrorXY(Units.Centimeters.of(2))
+            .withErrorTheta(Degrees.of(0.5))
+            .withBeelineRadius(Units.Centimeters.of(8));
+
+    public static final Autopilot kAutopilot = new Autopilot(kProfile);
     }
 
 
