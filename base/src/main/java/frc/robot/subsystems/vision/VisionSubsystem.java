@@ -13,8 +13,19 @@
 
 package frc.robot.subsystems.vision;
 
-import static frc.robot.subsystems.vision.VisionConstants.*;
+import static frc.robot.subsystems.vision.VisionConstants.angularStdDevBaseline;
+import static frc.robot.subsystems.vision.VisionConstants.angularStdDevMegatag2Factor;
+import static frc.robot.subsystems.vision.VisionConstants.aprilTagLayout;
+import static frc.robot.subsystems.vision.VisionConstants.cameraStdDevFactors;
+import static frc.robot.subsystems.vision.VisionConstants.linearStdDevBaseline;
+import static frc.robot.subsystems.vision.VisionConstants.linearStdDevMegatag2Factor;
+import static frc.robot.subsystems.vision.VisionConstants.maxAmbiguity;
+import static frc.robot.subsystems.vision.VisionConstants.maxZError;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import dev.doglog.DogLog;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -27,11 +38,6 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import frc.robot.subsystems.vision.VisionIO.VisionIOInputs;
-
-import java.util.LinkedList;
-import java.util.List;
-
-import dev.doglog.DogLog;
 
 public class VisionSubsystem extends SubsystemBase {
   private final VisionConsumer consumer;
@@ -76,7 +82,6 @@ public class VisionSubsystem extends SubsystemBase {
       DogLog.log("Vision/NumPoseObservations" + Integer.toString(i), inputs[i].poseObservations.length);
       DogLog.log("Vision/LatestObsTx" + Integer.toString(i), inputs[i].latestTargetObservation.tx());
       DogLog.log("Vision/LatestObsTy" + Integer.toString(i), inputs[i].latestTargetObservation.ty());
-
     }
 
     // Initialize logging values
@@ -155,16 +160,16 @@ public class VisionSubsystem extends SubsystemBase {
       }
 
       // Log camera datadata
-      Logger.recordOutput(
+      DogLog.log(
           "Vision/Camera" + Integer.toString(cameraIndex) + "/TagPoses",
           tagPoses.toArray(new Pose3d[tagPoses.size()]));
-      Logger.recordOutput(
+      DogLog.log(
           "Vision/Camera" + Integer.toString(cameraIndex) + "/RobotPoses",
           robotPoses.toArray(new Pose3d[robotPoses.size()]));
-      Logger.recordOutput(
+      DogLog.log(
           "Vision/Camera" + Integer.toString(cameraIndex) + "/RobotPosesAccepted",
           robotPosesAccepted.toArray(new Pose3d[robotPosesAccepted.size()]));
-      Logger.recordOutput(
+      DogLog.log(
           "Vision/Camera" + Integer.toString(cameraIndex) + "/RobotPosesRejected",
           robotPosesRejected.toArray(new Pose3d[robotPosesRejected.size()]));
       allTagPoses.addAll(tagPoses);
@@ -174,14 +179,14 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     // Log summary data
-    Logger.recordOutput(
+    DogLog.log(
         "Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
-    Logger.recordOutput(
+    DogLog.log(
         "Vision/Summary/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
-    Logger.recordOutput(
+    DogLog.log(
         "Vision/Summary/RobotPosesAccepted",
         allRobotPosesAccepted.toArray(new Pose3d[allRobotPosesAccepted.size()]));
-    Logger.recordOutput(
+    DogLog.log(
         "Vision/Summary/RobotPosesRejected",
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
   }
