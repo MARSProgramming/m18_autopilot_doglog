@@ -5,6 +5,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import dev.doglog.DogLog;
 import edu.wpi.first.networktables.DoubleSubscriber;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -33,12 +34,28 @@ public class CoralSubsystem extends SubsystemBase {
     DogLog.log("Coral/OutputPerc", coral.getMotorOutputPercent());
     DogLog.log("Coral/OutputVolt", coral.getMotorOutputVoltage());
     DogLog.log("Coral/Temp", coral.getTemperature());
+
+    if (coral.getTemperature() > 60.0) {
+        DogLog.logFault("HOT CAUTION - Coral", AlertType.kWarning);
+    }
+
   }
 
   // Default Commands
   public Command run(double percent) {
     return run(() -> {
         coral.set(TalonSRXControlMode.PercentOutput, percent);
+    });
+  }
+
+  // A utility command for auto to continue running the coral motor passively when we have coral.
+  public Command checkCoral() {
+    return passive().until(this::hasCoral).andThen(passive());
+  }
+  
+  public Command passive() {
+    return run(() -> {
+        coral.set(TalonSRXControlMode.PercentOutput, tunableDefaultOutput.get());
     });
   }
 

@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
@@ -12,9 +11,9 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import dev.doglog.DogLog;
 import edu.wpi.first.networktables.DoubleSubscriber;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.Constants;
@@ -104,6 +103,7 @@ public class ElevatorSubsystem extends SubsystemBase{
         return runEnd(() -> {
             master.setControl(voltageRequest.withOutput(elevatorZeroVoltage.get()));
         }, () -> {
+            DogLog.log("Elevator/CurrentSetpointReached", "HOME");
             master.set(0);
         })
         .until(() -> !limit.get())
@@ -121,6 +121,7 @@ public class ElevatorSubsystem extends SubsystemBase{
 
     public Command climb() {
         return runEnd(() -> {
+            DogLog.log("Elevator/ClimbActive", true);
             servo.set(0.5);
             master.setControl(voltageRequest.withOutput(elevatorClimbVoltage.get()));
         }, () -> {
@@ -128,60 +129,96 @@ public class ElevatorSubsystem extends SubsystemBase{
         }).until(() -> !limit.get());
     }
 
-    // Setpoint commands will terminate after a cooldown. This is to prevent a firmware motor disable if the elevator is commanded for too long.
-    // Furthermore, robot actions should not take longer than 5-7 seconds.
+
+    // Setpoint commands will terminate after a cooldown. This is to prevent a firmware auto-disable if the elevator is commanded for too long.
+    // Furthermore, robot elevator actions should not take longer than 5-8 seconds. 
 
     public Command goToSetpointL4() {
-        return run(() -> {
+        return runEnd(() -> {
             servo.set(0);
             master.setControl(motionRequest.withPosition(elevatorL4.get()));
-        }).withTimeout(6);
+        }, () -> {
+            master.setControl(motionRequest.withPosition(master.getPosition().getValueAsDouble()));
+            DogLog.log("Elevator/CurrentSetpointReached", "L4");
+        }).
+        until(
+            () -> isNearPosition(elevatorL4.get()));
     }
 
     public Command goToSetpointL3() {
-        return run(() -> {
+        return runEnd(() -> {
             servo.set(0);
             master.setControl(motionRequest.withPosition(elevatorL3.get()));
-        }).withTimeout(5);
+        }, () -> {
+            master.setControl(motionRequest.withPosition(master.getPosition().getValueAsDouble()));
+            DogLog.log("Elevator/CurrentSetpointReached", "L3");
+        }).
+        until(
+            () -> isNearPosition(elevatorL3.get()));
     }
 
     public Command goToSetpointL2() {
-        return run(() -> {
+        return runEnd(() -> {
             servo.set(0);
             master.setControl(motionRequest.withPosition(elevatorL2.get()));
-        }).withTimeout(5);
+        }, () -> {
+            master.setControl(motionRequest.withPosition(master.getPosition().getValueAsDouble()));
+            DogLog.log("Elevator/CurrentSetpointReached", "L2");
+        }).
+        until(
+            () -> isNearPosition(elevatorL2.get()));
     }
 
     public Command goToSetpointTopAlgae() {
-        return run(() -> {
+        return runEnd(() -> {
             servo.set(0);
             master.setControl(motionRequest.withPosition(elevatorAlgaeTop.get()));
-        }).withTimeout(5);
+        }, () -> {
+            master.setControl(motionRequest.withPosition(master.getPosition().getValueAsDouble()));
+            DogLog.log("Elevator/CurrentSetpointReached", "ALG_TOP");
+        }).
+        until(
+            () -> isNearPosition(elevatorAlgaeTop.get()));
     }
 
     public Command goToSetpointBotAlgae() {
-        return run(() -> {
+        return runEnd(() -> {
             servo.set(0);
             master.setControl(motionRequest.withPosition(elevatorAlgaeBot.get()));
-        }).withTimeout(5);
+        }, () -> {
+            master.setControl(motionRequest.withPosition(master.getPosition().getValueAsDouble()));
+            DogLog.log("Elevator/CurrentSetpointReached", "ALG_BOT");
+        }).
+        until(
+            () -> isNearPosition(elevatorAlgaeBot.get()));
     }
 
     public Command goToSetpointGroundAlgae() {
-        return run(() -> {
+        return runEnd(() -> {
             servo.set(0);
             master.setControl(motionRequest.withPosition(elevatorAlgaeGround.get()));
-        }).withTimeout(5);
+        }, () -> {
+            master.setControl(motionRequest.withPosition(master.getPosition().getValueAsDouble()));
+            DogLog.log("Elevator/CurrentSetpointReached", "ALG_GRO");
+        }).
+        until(
+            () -> isNearPosition(elevatorAlgaeBot.get()));
     }
 
     public Command goToSetpointProcessor() {
-        return run(() -> {
+        return runEnd(() -> {
             servo.set(0);
             master.setControl(motionRequest.withPosition(elevatorAlgaeProcessor.get()));
-        }).withTimeout(5);
+        }, () -> {
+            master.setControl(motionRequest.withPosition(master.getPosition().getValueAsDouble()));
+            DogLog.log("Elevator/CurrentSetpointReached", "ALG_PRO");
+        }).
+        until(
+            () -> isNearPosition(elevatorAlgaeBot.get()));
     }
 
     // Utilities
-    public boolean isNear(double rotations) {
+    public boolean isNearPosition(double rotations) {
         return Math.abs(master.getPosition().getValueAsDouble() - rotations) < ElevatorSetpointConfigs.ELEVATOR_DEADZONE_DIST;
     }
 
