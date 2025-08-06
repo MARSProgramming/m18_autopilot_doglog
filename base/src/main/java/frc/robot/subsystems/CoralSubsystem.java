@@ -14,28 +14,12 @@ public class CoralSubsystem extends SubsystemBase {
   TalonSRX coral = new TalonSRX(12);
   private AnalogInput IR = new AnalogInput(1);
 
-  // default values 
-  double irSensorThreshold = 1.8;
-  double defaultMax = 1.0;
-  double defaultLow = 0.5;
-  double defaultScoreTime = 0.4;
-
   // Tunables
-  private final DoubleSubscriber tunableOutputHigh = DogLog.tunable("Coral/HighOut", 1.0, newL4 -> {
-    defaultMax = newL4;
-  });
-
-  private final DoubleSubscriber tunableOutputLow = DogLog.tunable("Coral/LowOut", 0.5, newMidlevel -> {
-    defaultLow = newMidlevel;
-  });
-
-  private final DoubleSubscriber tunableTimedThreshold = DogLog.tunable("Coral/ScoreTimer", 0.4, newTime -> {
-    defaultScoreTime = newTime;
-  });
-
-  private final DoubleSubscriber tunableSensorThreshold = DogLog.tunable("Coral/TunableThreshold", 1.8, newThreshold -> {
-    irSensorThreshold = newThreshold;
-  });
+  private final DoubleSubscriber tunableOutputHigh = DogLog.tunable("Coral/HighOut", 1.0);
+  private final DoubleSubscriber tunableOutputLow = DogLog.tunable("Coral/LowOut", 0.5);
+  private final DoubleSubscriber tunableDefaultOutput = DogLog.tunable("Coral/Default", -0.25);
+  private final DoubleSubscriber tunableTimedThreshold = DogLog.tunable("Coral/ScoreTimer", 0.4);
+  private final DoubleSubscriber tunableSensorThreshold = DogLog.tunable("Coral/TunableThreshold", 1.8);
 
 
   public CoralSubsystem() {
@@ -44,6 +28,7 @@ public class CoralSubsystem extends SubsystemBase {
     IR.setAverageBits(4);
   }
 
+  @Override
   public void periodic() {
     DogLog.log("Coral/OutputPerc", coral.getMotorOutputPercent());
     DogLog.log("Coral/OutputVolt", coral.getMotorOutputVoltage());
@@ -54,6 +39,14 @@ public class CoralSubsystem extends SubsystemBase {
   public Command run(double percent) {
     return run(() -> {
         coral.set(TalonSRXControlMode.PercentOutput, percent);
+    });
+  }
+
+  public Command testCoralMotor() {
+    return runEnd(() -> {
+        coral.set(TalonSRXControlMode.PercentOutput, tunableOutputHigh.get());
+    }, () -> {
+        coral.set(TalonSRXControlMode.PercentOutput, 0);
     });
   }
 

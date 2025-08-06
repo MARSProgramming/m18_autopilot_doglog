@@ -40,6 +40,7 @@ public class AlgaeSubsystem extends SubsystemBase {
     algae.configure(config, null, null);
   }
 
+  @Override
   public void periodic() {
     DogLog.log("Algae/OutputCurrent", algae.getOutputCurrent());
     DogLog.log("Algae/NominalVoltage", algae.getBusVoltage());
