@@ -1,8 +1,8 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-
-
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.therekrab.autopilot.APTarget;
@@ -42,6 +42,11 @@ public class Superstructure extends SubsystemBase {
     .withDriveRequestType(DriveRequestType.Velocity)
     .withHeadingPID(4, 0, 0); /* change theese values for your robot */
 
+    private SwerveRequest.FieldCentricFacingAngle snapToAngle = new SwerveRequest.FieldCentricFacingAngle()
+    .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance)
+    .withDriveRequestType(DriveRequestType.Velocity)
+    .withHeadingPID(4, 0, 0); /* change theese values for your robot */
+
 
     // Intialize superstructure
     public Superstructure(CommandSwerveDrivetrain dt, AlgaeSubsystem alg, CoralSubsystem cor, Magic mag, ElevatorSubsystem elv) {
@@ -70,7 +75,7 @@ public class Superstructure extends SubsystemBase {
         }).until(() -> 
             Constants.AutopilotConstants.kAutopilot.atTarget(dt.getState().Pose, alignmentTarget))
         .finallyDo(
-            () -> dt.stop()
+            () -> dt.stopWithX()
         );
     }
 
@@ -101,8 +106,43 @@ public class Superstructure extends SubsystemBase {
         }).until(() -> 
             Constants.AutopilotConstants.kAutopilot.atTarget(dt.getState().Pose, target))
         .finallyDo(
-            () -> dt.stop()
+            () -> dt.stopWithX()
         );
+    }
+
+    public Command snapToProcessor(DoubleSupplier joystickX, DoubleSupplier joystickY, double slowFactor) {
+        Rotation2d targetAngle = Constants.isBlueAlliance() 
+            ? Constants.FieldConstants.BLUE_PROCESSOR_ANGLE
+            : Constants.FieldConstants.RED_PROCESSOR_ANGLE;
+        int negativeMulti = Constants.isBlueAlliance() ? 1 : -1;
+
+            return runEnd(() -> {
+            dt.setControl(
+                snapToAngle
+                .withVelocityX(negativeMulti * joystickX.getAsDouble() * slowFactor)
+                .withVelocityY(negativeMulti * joystickY.getAsDouble() * slowFactor)
+                .withTargetDirection(targetAngle)
+            );
+        }, () -> {
+            dt.stop();
+        });
+    }
+
+    public Command snapToBarge(DoubleSupplier joystickX, DoubleSupplier joystickY, double slowFactor) {
+        Rotation2d targetAngle = Constants.isBlueAlliance() 
+            ? Constants.FieldConstants.BLUE_CLIMB_ANGLE
+            : Constants.FieldConstants.RED_CLIMB_ANGLE;
+        int negativeMulti = Constants.isBlueAlliance() ? 1 : -1;
+        return runEnd(() -> {
+            dt.setControl(
+                snapToAngle
+                .withVelocityX(negativeMulti * joystickX.getAsDouble() * slowFactor)
+                .withVelocityY(negativeMulti * joystickY.getAsDouble() * slowFactor)
+                .withTargetDirection(targetAngle)
+            );
+        }, () -> {
+            dt.stop();
+        });
     }
 
     // Teleop methods
@@ -154,6 +194,22 @@ public class Superstructure extends SubsystemBase {
         }, () -> {
             elevator.bumpUp(.25);
             algae.hold();
+        });
+    }
+
+    // A command that will, while a binding is held, hold algae and snap the drivetrain angle to the processor.
+    // When the binding is released, the algae will be processed. Experimental feature - the elevator will come up as we
+    // spit to help the algae "fall" in an inwards arc towards the processor.
+
+    public Command snapToAlgaeAndProcess(DoubleSupplier jx, DoubleSupplier jy, double slowFactor) {
+        return runEnd(() -> {
+            algae.hold();
+            snapToProcessor(jx, jy, slowFactor);
+        }, () -> {
+            runOnce(() -> elevator.bumpUp(.1));
+            algae.spit()
+            .withTimeout(3)
+            .andThen(algae.stop());
         });
     }
 

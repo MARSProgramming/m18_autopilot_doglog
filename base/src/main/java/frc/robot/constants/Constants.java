@@ -38,7 +38,7 @@ import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
-public final class Constants {
+public class Constants {
     public static class AltSwerveConstants {
         public static final Distance TRACK_WIDTH = Distance.ofBaseUnits(22.75, Inches); // Distance between Left & Right
                                                                                         // Wheels
@@ -133,6 +133,17 @@ public final class Constants {
         public static final double REEF_APRILTAG_HEIGHT = 6.875; // feet? figure out units
         public static final double PROCCESSOR_APRILTAG_HEIGHT = 45.875;
         public static final double CORAL_APRILTAG_HEIGHT = 53.25;
+
+        public static final Rotation2d BLUE_PROCESSOR_ANGLE = new Rotation2d(Degrees.of(90));
+        public static final Rotation2d RED_PROCESSOR_ANGLE = new Rotation2d(Degrees.of(-90));
+
+        public static final Rotation2d BLUE_CLIMB_ANGLE = new Rotation2d(Degrees.of(0));
+        public static final Rotation2d RED_CLIMB_ANGLE = new Rotation2d(Degrees.of(180));
+
+    }
+
+    public static boolean isBlueAlliance() {
+        return DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue;
     }
 
     public static class VisionFiducials {

@@ -64,9 +64,15 @@ public class AlgaeSubsystem extends SubsystemBase {
   
   public Command hold() {
     return runEnd(() -> {
-        algae.set(tunableSpit.get());
+        algae.set(tunableHold.get());
     }, () -> {
         algae.set(0);
+    });
+  }
+
+  public Command stop() {
+    return run(() -> {
+      algae.set(0);
     });
   }
 

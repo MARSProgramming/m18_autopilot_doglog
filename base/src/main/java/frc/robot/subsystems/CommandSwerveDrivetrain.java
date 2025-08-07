@@ -309,8 +309,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return ChassisSpeeds.fromRobotRelativeSpeeds(getState().Speeds, getState().Pose.getRotation());
     }
 
-    public void stop() {
+    public void stopWithX() {
         setControl(new SwerveRequest.SwerveDriveBrake());
+      }
+
+      public void stop() {
+        setControl(new SwerveRequest.ApplyRobotSpeeds().withSpeeds(new ChassisSpeeds()));
       }
 
 
