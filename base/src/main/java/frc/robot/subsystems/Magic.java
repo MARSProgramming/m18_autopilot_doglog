@@ -10,6 +10,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.BooleanSubscriber;
+import edu.wpi.first.networktables.IntegerSubscriber;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -18,15 +19,19 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.TunableTransforms;
 
 // A utility class for handling the level of automation as well as  
-public class FieldmapUtilities extends SubsystemBase {
+public class Magic extends SubsystemBase {
 
     int level;
     private Alliance alliance;
-    private final BooleanSubscriber enableAutoScore = DogLog.tunable("System/LC/Autoscore", true);
+    private final IntegerSubscriber AutomationLevel = DogLog.tunable("System/LC/Autoscore", 3);
+    // Automation Scoring Level key
+    // 1: No automation, just alignment
+    // 2: Alignment and raise elevator
+    // 3: Alignment, raise elevator, and score
     static AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
     private List<Pose2d> reefPoses;
-
-    public FieldmapUtilities(Alliance dsAlliance) {
+    APTarget currentAutopilotTarget = new APTarget(Pose2d.kZero);
+    public Magic(Alliance dsAlliance) {
         if (dsAlliance != null) {
             alliance = dsAlliance;
             DogLog.log("System/LC/AllianceGenerated", true);
@@ -63,7 +68,7 @@ public class FieldmapUtilities extends SubsystemBase {
     public APTarget getAPTarget(boolean left, Pose2d currentDrivetrainPose) {
         Pose2d poseToTarget = Pose2d.kZero;
         APTarget AutopilotCompatibleTarget = new APTarget(poseToTarget);
-
+        currentAutopilotTarget = AutopilotCompatibleTarget;
         if (reefPoses.isEmpty()) {
             DogLog.logFault("System: Pose list not generated!", AlertType.kWarning);
             return new APTarget(currentDrivetrainPose);
@@ -93,10 +98,19 @@ public class FieldmapUtilities extends SubsystemBase {
         return AutopilotCompatibleTarget;
     }
 
+    public int getAutomation() {
+        long e = AutomationLevel.get();
+        return ((int)e);
+    }
+
+    public APTarget getCurrentAPTarget() {
+        return currentAutopilotTarget;
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("System/LC/Level", level);
-        SmartDashboard.putBoolean("System/LC/RedundantAutomationLogger", enableAutoScore.get());
+        SmartDashboard.putNumber("System/LC/RedundantAutomationLogger", AutomationLevel.get());
     }
 
 
