@@ -119,8 +119,8 @@ public final class Constants {
             .withJerk(2.0);
 
     private static final APProfile kProfile = new APProfile(kConstraints)
-            .withErrorXY(Units.Centimeters.of(2))
-            .withErrorTheta(Degrees.of(0.5))
+            .withErrorXY(Units.Centimeters.of(3))
+            .withErrorTheta(Degrees.of(3))
             .withBeelineRadius(Units.Centimeters.of(8));
 
     public static final Autopilot kAutopilot = new Autopilot(kProfile);
