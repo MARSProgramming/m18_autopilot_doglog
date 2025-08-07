@@ -129,6 +129,17 @@ public class ElevatorSubsystem extends SubsystemBase{
         }).until(() -> !limit.get());
     }
 
+    public Command bumpUp(double bumpUpValue) {
+        double targetedBumpUp  = getPosition() + bumpUpValue;
+        return runEnd(() -> {
+            servo.set(0);
+            master.setControl(motionRequest.withPosition(targetedBumpUp));
+        }, () -> {
+            master.set(0);
+        }).until(() -> isNearPosition(targetedBumpUp));
+   
+    }
+
 
     // Setpoint commands will terminate after a cooldown. This is to prevent a firmware auto-disable if the elevator is commanded for too long.
     // Furthermore, robot elevator actions should not take longer than 5-8 seconds. 
@@ -220,6 +231,10 @@ public class ElevatorSubsystem extends SubsystemBase{
     // Utilities
     public boolean isNearPosition(double rotations) {
         return Math.abs(master.getPosition().getValueAsDouble() - rotations) < ElevatorSetpointConfigs.ELEVATOR_DEADZONE_DIST;
+    }
+
+    public double getPosition() {
+        return master.getPosition().getValueAsDouble();
     }
 
     @Override

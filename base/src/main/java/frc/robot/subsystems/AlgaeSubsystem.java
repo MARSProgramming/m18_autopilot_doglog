@@ -15,23 +15,16 @@ public class AlgaeSubsystem extends SubsystemBase {
   SparkMax algae = new SparkMax(12, MotorType.kBrushless);
 
   // default values 
-  double stallThreshold = 1.0;
-  double defaultSpitOut = 1.0;
-  double defaultIntaking = -1.0;
+
 
   // Tunables
-  private final DoubleSubscriber tunableStallThreshold = DogLog.tunable("Algae/StallDetection", 30.0, newThreshold -> {
-    stallThreshold = newThreshold;
-  });
+  private final DoubleSubscriber tunableStallThreshold = DogLog.tunable("Algae/StallDetection", 30.0);
 
-  private final DoubleSubscriber tunableSpit = DogLog.tunable("Algae/SpitPercent", 1.0, newSpit -> {
-    defaultSpitOut = newSpit;
-  });
+  private final DoubleSubscriber tunableSpit = DogLog.tunable("Algae/SpitPercent", 1.0);
 
-  private final DoubleSubscriber tunableIntake = DogLog.tunable("Algae/IntakePercent", -1.0, newIntaking -> {
-    defaultIntaking = newIntaking;
-  });
+  private final DoubleSubscriber tunableIntake = DogLog.tunable("Algae/IntakePercent", -1.0);
 
+  private final DoubleSubscriber tunableHold = DogLog.tunable("Algae/HoldPercent", -0.25);  
 
   public AlgaeSubsystem() {
     SparkMaxConfig config = new SparkMaxConfig();
@@ -61,6 +54,15 @@ public class AlgaeSubsystem extends SubsystemBase {
   }
 
   public Command spit() {
+    return runEnd(() -> {
+        algae.set(tunableSpit.get());
+    }, () -> {
+        algae.set(0);
+    });
+  }
+
+  
+  public Command hold() {
     return runEnd(() -> {
         algae.set(tunableSpit.get());
     }, () -> {
