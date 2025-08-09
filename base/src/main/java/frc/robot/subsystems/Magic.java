@@ -18,7 +18,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.Constants;
 import frc.robot.constants.TunableTransforms;
 
-// A utility class for handling the level of automation as well as  
+// A utility class for handling the level of automation as well as the alignment and scoring of the robot in the game field
 public class Magic extends SubsystemBase {
 
     int level;
@@ -31,6 +31,9 @@ public class Magic extends SubsystemBase {
     static AprilTagFieldLayout field = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
     private List<Pose2d> reefPoses;
     APTarget currentAutopilotTarget = new APTarget(Pose2d.kZero);
+
+    public boolean algaeMode = false;
+
     public Magic(Alliance dsAlliance) {
         if (dsAlliance != null) {
             alliance = dsAlliance;
@@ -107,10 +110,20 @@ public class Magic extends SubsystemBase {
         return currentAutopilotTarget;
     }
 
+    public void setAlgaeEnable() {
+        algaeMode = algaeMode ? false : true;
+    }
+
+    public boolean getAlgaeEnabled() {
+        return algaeMode;
+    }
+
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("System/LC/Level", level);
         SmartDashboard.putNumber("System/LC/RedundantAutomationLogger", AutomationLevel.get());
+
     }
 
 

@@ -43,8 +43,16 @@ public class CoralSubsystem extends SubsystemBase {
 
   // Default Commands
   public Command run(double percent) {
-    return run(() -> {
+    return runEnd(() -> {
         coral.set(TalonSRXControlMode.PercentOutput, percent);
+    }, () -> {
+        coral.set(TalonSRXControlMode.PercentOutput, 0);
+    });
+  }
+
+  public Command stop() {
+    return runOnce(() -> {
+        coral.set(TalonSRXControlMode.PercentOutput, 0);
     });
   }
 

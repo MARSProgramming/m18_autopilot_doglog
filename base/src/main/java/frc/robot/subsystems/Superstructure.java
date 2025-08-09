@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.constants.Constants;
 
 public class Superstructure extends SubsystemBase {
@@ -28,8 +29,7 @@ public class Superstructure extends SubsystemBase {
     Magic magic;
     ElevatorSubsystem elevator;
 
-    Pose2d currentTarget = Pose2d.kZero;
-    boolean closeEnoughToRaiseElevator = false;
+    CommandXboxController pilot;
 
     StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
     .getStructTopic("Poses/DesiredAPTarget", Pose2d.struct).publish();
@@ -55,14 +55,15 @@ public class Superstructure extends SubsystemBase {
         this.coral = cor;
         this.magic = mag;
         this.elevator = elv;
+
+        pilot = new CommandXboxController(0);
     }
 
     // Builder Methods
 
-    public Command autopilotToCoralTarget(boolean side) {
-        APTarget alignmentTarget = magic.getAPTarget(side, dt.getState().Pose);
+    public Command autopilotToCoralTarget(boolean left) {
+        APTarget alignmentTarget = magic.getAPTarget(left, dt.getState().Pose);
         return this.run(() -> {
-            currentTarget = alignmentTarget.getReference();
             Translation2d velocities = getDriveVelocitiesAsTranslation2d();
             Pose2d currentPose = dt.getState().Pose;
 
@@ -150,26 +151,27 @@ public class Superstructure extends SubsystemBase {
 
     // A fully integrated method that for L2 and L3 scoring that will align, raise the elevator, score, and zero. Otherwise,
     // it will align, score, and rely on operator to zero.
-    public Command AlignAndScore(boolean side) {
+    public Command AlignAndScore(boolean left) {
         int lev = magic.getLevel();
         Command setpoint = Commands.none();
 
         switch (lev) {
+            case 4 -> setpoint = elevator.goToSetpointL4();
             case 3 -> setpoint = elevator.goToSetpointL3();
             case 2 -> setpoint = elevator.goToSetpointL2();
         }
 
         if (lev == 3 || lev == 2) {
              return Commands.parallel(
-                autopilotToCoralTarget(side),
+                autopilotToCoralTarget(left),
                 setpoint
             ).andThen(
                 handleAutoScore()
             ).andThen(elevator.zero());
         } else if (lev == 4) {
             return Commands.parallel(
-                autopilotToCoralTarget(side),
-                elevator.goToSetpointL4()
+                autopilotToCoralTarget(left),
+                setpoint
             ).andThen(
                 handleAutoScore()
             );
@@ -183,7 +185,8 @@ public class Superstructure extends SubsystemBase {
         return Commands.parallel(
             elevator.zero(),
             coral.passive(),
-            algae.stop().withTimeout(0.1) // We only need to command the algae motor to stop momentarily
+            algae.stop().withTimeout(0.1), // We only need to command the algae motor to stop momentarily
+            runOnce(() -> dt.stop()) // use to stop drivetrain and cancel an Autopilot action
         );
     }
 
@@ -195,6 +198,31 @@ public class Superstructure extends SubsystemBase {
             elevator.bumpUp(.25);
             algae.hold();
         });
+    }
+
+
+    // a command to start the algae intake once we reach the setpoint for the bottom algae
+    public Command getAlgaeFromBotReef() {
+        return Commands.sequence(
+            elevator.goToSetpointBotAlgae(),
+            algae.intake()
+        );
+    }
+
+    // a command to start the algae intake once we reach the setpoint for the top algae
+    public Command getAlgaeFromTopReef() {
+        return Commands.sequence(
+            elevator.goToSetpointTopAlgae(),
+            algae.intake()
+        );
+    }
+
+    // a command to start the algae intake once we reach the setpoint for the ground algae
+    public Command getGroundAlgae() {
+        return Commands.sequence(
+            elevator.goToSetpointGroundAlgae(),
+            algae.intake()
+        );
     }
 
     // A command that will, while a binding is held, hold algae and snap the drivetrain angle to the processor.
@@ -213,6 +241,14 @@ public class Superstructure extends SubsystemBase {
         });
     }
 
+    public Command prepClimb(DoubleSupplier jx, DoubleSupplier jy, double slowFactor) {
+        return runOnce(
+            () -> 
+            algae.stop().alongWith(coral.stop())
+            .andThen(elevator.goToSetpointL2())
+        );
+    }
+
 
     // Utilities
 
@@ -224,9 +260,32 @@ public class Superstructure extends SubsystemBase {
         return new Translation2d(vx, vy).rotateBy(theta);
     }
 
+    public CommandXboxController getPilot() {
+        return pilot;
+    }
+
+
+    // get all subsystems that are useful during binding
+
+    public ElevatorSubsystem getElevator() {
+        return elevator;
+    }
+
+    public CoralSubsystem getCoralSubsystem() {
+        return coral;
+    }
+
+    public AlgaeSubsystem getAlgaeSubsystem() {
+        return algae;
+    }
+
+
     @Override
     public void periodic() {
-        publisher.set(currentTarget);
-        arrayPublisher.set(new Pose2d[] {currentTarget});
+
+        Pose2d currentAlignmentTarget = magic.getCurrentAPTarget().getReference();
+
+        publisher.set(currentAlignmentTarget);
+        arrayPublisher.set(new Pose2d[] {currentAlignmentTarget});
     }
 }

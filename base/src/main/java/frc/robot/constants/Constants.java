@@ -81,6 +81,7 @@ public class Constants {
         public static final CANBus DrivetrainAndClimbBus = new CANBus("CAN-2", "./logs/example.hoot");
 
         public static final int SYSTEM_CAN_ID = 21;
+        public static final int LED = 40;
 
         public static class CORAL_MECHANISM {
             public static final int CORAL_BUCKET_ROTATE = 1;

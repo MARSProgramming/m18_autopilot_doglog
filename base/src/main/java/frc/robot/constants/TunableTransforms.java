@@ -40,7 +40,7 @@ public class TunableTransforms {
              Transforms.RIGHT_LOW_TRANSFORM = new Transform2d(AlignTransforms.RightXLower.get(), AlignTransforms.RightYLower.get(), new Rotation2d(Math.toRadians(AlignTransforms.RightRot.get())));
              Transforms.RIGHT_L4_TRANSFORM = new Transform2d(AlignTransforms.RightXL4.get(), AlignTransforms.RightYL4.get(), new Rotation2d(Math.toRadians(AlignTransforms.RightRot.get())));
              Transforms.LEFT_LOW_TRANSFORM = new Transform2d(AlignTransforms.LeftXLower.get(), AlignTransforms.LeftYLower.get(), new Rotation2d(Math.toRadians(AlignTransforms.LeftRot.get())));
-             Transforms.LEFT_L4_TRANSFORM = new Transform2d(AlignTransforms.LeftXLower.get(), AlignTransforms.LeftYLower.get(), new Rotation2d(Math.toRadians(AlignTransforms.LeftRot.get())));
+             Transforms.LEFT_L4_TRANSFORM = new Transform2d(AlignTransforms.LeftXL4.get(), AlignTransforms.LeftYL4.get(), new Rotation2d(Math.toRadians(AlignTransforms.LeftRot.get())));
         }
 
     }
