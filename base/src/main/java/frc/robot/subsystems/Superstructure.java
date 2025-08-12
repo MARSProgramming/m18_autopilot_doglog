@@ -52,12 +52,13 @@ public class Superstructure extends SubsystemBase {
 
 
     // Intialize superstructure
-    public Superstructure(CommandSwerveDrivetrain dt, AlgaeSubsystem alg, CoralSubsystem cor, Magic mag, ElevatorSubsystem elv) {
+    public Superstructure(CommandSwerveDrivetrain dt, AlgaeSubsystem alg, CoralSubsystem cor, Magic mag, ElevatorSubsystem elv, CANdleSubsystem candle) {
         this.dt = dt;
         this.algae = alg;
         this.coral = cor;
         this.magic = mag;
         this.elevator = elv;
+        this.candle = candle;
 
         pilot = new CommandXboxController(0);
     }
@@ -223,6 +224,13 @@ public class Superstructure extends SubsystemBase {
         return Commands.sequence(
             elevator.goToSetpointGroundAlgae(),
             algae.intake()
+        ).andThen(
+            runEnd(
+                () -> {
+                    algae.intake();
+                }, () -> {
+                    algae.hold();
+                })
         );
     }
 
@@ -243,7 +251,7 @@ public class Superstructure extends SubsystemBase {
         });
     }
 
-    public Command prepClimb(DoubleSupplier jx, DoubleSupplier jy, double slowFactor) {
+    public Command prepClimb() {
         return Commands.sequence(
             algae.stop(),
             coral.stop(),

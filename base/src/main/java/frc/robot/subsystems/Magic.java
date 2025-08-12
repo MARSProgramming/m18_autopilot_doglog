@@ -11,6 +11,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.networktables.IntegerSubscriber;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -22,7 +23,6 @@ import frc.robot.constants.TunableTransforms;
 public class Magic extends SubsystemBase {
 
     int level;
-    private Alliance alliance;
     private final IntegerSubscriber AutomationLevel = DogLog.tunable("System/LC/Autoscore", 3);
     // Automation Scoring Level key
     // 1: No automation, just alignment
@@ -34,12 +34,7 @@ public class Magic extends SubsystemBase {
 
     public boolean algaeMode = false;
 
-    public Magic(Alliance dsAlliance) {
-        if (dsAlliance != null) {
-            alliance = dsAlliance;
-            DogLog.log("System/LC/AllianceGenerated", true);
-        }
-
+    public Magic() {
         reefPoses = generateList();
         DogLog.log("System/LC/ListGenerated", true);
     }
@@ -64,7 +59,7 @@ public class Magic extends SubsystemBase {
 
     public List<Pose2d> generateList() {
             return (
-                ((alliance == Alliance.Blue) ? createAprilTagPose2dList(Constants.VisionFiducials.BLUE_CORAL_TAGS) : createAprilTagPose2dList(Constants.VisionFiducials.RED_CORAL_TAGS))
+                ((Constants.isBlueAlliance()) ? createAprilTagPose2dList(Constants.VisionFiducials.BLUE_CORAL_TAGS) : createAprilTagPose2dList(Constants.VisionFiducials.RED_CORAL_TAGS))
             );
     }
 
@@ -110,8 +105,8 @@ public class Magic extends SubsystemBase {
         return currentAutopilotTarget;
     }
 
-    public void setAlgaeEnable() {
-        algaeMode = algaeMode ? false : true;
+    public void toggleAlgaeMode() {
+        algaeMode = !algaeMode;
     }
 
     public boolean getAlgaeEnabled() {
