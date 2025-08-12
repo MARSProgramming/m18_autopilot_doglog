@@ -46,32 +46,26 @@ public class AlgaeSubsystem extends SubsystemBase {
 
   // Default Commands
   public Command intake() {
-    return runEnd(() -> {
+    return run(() -> {
         algae.set(tunableIntake.get());
-    }, () -> {
-        algae.set(0);
     });
   }
 
   public Command spit() {
-    return runEnd(() -> {
+    return run(() -> {
         algae.set(tunableSpit.get());
-    }, () -> {
-        algae.set(0);
     });
   }
 
   
   public Command hold() {
-    return runEnd(() -> {
+    return run(() -> {
         algae.set(tunableHold.get());
-    }, () -> {
-        algae.set(0);
     });
   }
 
   public Command stop() {
-    return run(() -> {
+    return runOnce(() -> {
       algae.set(0);
     });
   }

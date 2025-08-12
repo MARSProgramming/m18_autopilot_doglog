@@ -19,8 +19,10 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.constants.Constants;
+import frc.robot.subsystems.CANdleSubsystem.COLOR;
 
 public class Superstructure extends SubsystemBase {
     CommandSwerveDrivetrain dt;
@@ -28,6 +30,7 @@ public class Superstructure extends SubsystemBase {
     CoralSubsystem coral;
     Magic magic;
     ElevatorSubsystem elevator;
+    CANdleSubsystem candle;
 
     CommandXboxController pilot;
 
@@ -75,8 +78,9 @@ public class Superstructure extends SubsystemBase {
             .withTargetDirection(output.targetAngle()));
         }).until(() -> 
             Constants.AutopilotConstants.kAutopilot.atTarget(dt.getState().Pose, alignmentTarget))
-        .finallyDo(
-            () -> dt.stopWithX()
+        .andThen(
+            runOnce(() -> dt.stopWithX()),
+            candle.strobeAnimation(COLOR.PURPLE).andThen(new WaitCommand(2)).andThen(candle.defaultcmd())
         );
     }
 
@@ -106,8 +110,9 @@ public class Superstructure extends SubsystemBase {
             .withTargetDirection(output.targetAngle()));
         }).until(() -> 
             Constants.AutopilotConstants.kAutopilot.atTarget(dt.getState().Pose, target))
-        .finallyDo(
-            () -> dt.stopWithX()
+        .andThen(
+            runOnce(() -> dt.stopWithX()),
+            candle.strobeAnimation(COLOR.BLUE).andThen(new WaitCommand(2)).andThen(candle.defaultcmd())
         );
     }
 
@@ -116,16 +121,13 @@ public class Superstructure extends SubsystemBase {
             ? Constants.FieldConstants.BLUE_PROCESSOR_ANGLE
             : Constants.FieldConstants.RED_PROCESSOR_ANGLE;
         int negativeMulti = Constants.isBlueAlliance() ? 1 : -1;
-
-            return runEnd(() -> {
+            return run(() -> {
             dt.setControl(
                 snapToAngle
                 .withVelocityX(negativeMulti * joystickX.getAsDouble() * slowFactor)
                 .withVelocityY(negativeMulti * joystickY.getAsDouble() * slowFactor)
                 .withTargetDirection(targetAngle)
             );
-        }, () -> {
-            dt.stop();
         });
     }
 
@@ -134,15 +136,13 @@ public class Superstructure extends SubsystemBase {
             ? Constants.FieldConstants.BLUE_CLIMB_ANGLE
             : Constants.FieldConstants.RED_CLIMB_ANGLE;
         int negativeMulti = Constants.isBlueAlliance() ? 1 : -1;
-        return runEnd(() -> {
+        return run(() -> {
             dt.setControl(
                 snapToAngle
                 .withVelocityX(negativeMulti * joystickX.getAsDouble() * slowFactor)
                 .withVelocityY(negativeMulti * joystickY.getAsDouble() * slowFactor)
                 .withTargetDirection(targetAngle)
             );
-        }, () -> {
-            dt.stop();
         });
     }
 
@@ -167,13 +167,13 @@ public class Superstructure extends SubsystemBase {
                 setpoint
             ).andThen(
                 handleAutoScore()
-            ).andThen(elevator.zero());
+            ).andThen(elevator.zero().alongWith(candle.defaultcmd()));
         } else if (lev == 4) {
             return Commands.parallel(
                 autopilotToCoralTarget(left),
                 setpoint
             ).andThen(
-                handleAutoScore()
+                handleAutoScore().alongWith(candle.defaultcmd())
             );
         } else {
             DogLog.log("Failed to align. Level not set or invalid.", AlertType.kWarning);
@@ -197,6 +197,7 @@ public class Superstructure extends SubsystemBase {
         }, () -> {
             elevator.bumpUp(.25);
             algae.hold();
+            candle.strobeAnimation(COLOR.PURPLE).andThen(new WaitCommand(2)).andThen(candle.defaultcmd());
         });
     }
 
@@ -233,19 +234,29 @@ public class Superstructure extends SubsystemBase {
         return runEnd(() -> {
             algae.hold();
             snapToProcessor(jx, jy, slowFactor);
+            candle.setColor(COLOR.GREEN);
         }, () -> {
             runOnce(() -> elevator.bumpUp(.1));
             algae.spit()
             .withTimeout(3)
-            .andThen(algae.stop());
+            .andThen(algae.stop().alongWith(candle.defaultcmd()));
         });
     }
 
     public Command prepClimb(DoubleSupplier jx, DoubleSupplier jy, double slowFactor) {
-        return runOnce(
-            () -> 
-            algae.stop().alongWith(coral.stop())
-            .andThen(elevator.goToSetpointL2())
+        return Commands.sequence(
+            algae.stop(),
+            coral.stop(),
+            candle.setColor(COLOR.ORANGE)
+        ).andThen(
+            elevator.goToSetpointL2()
+        );
+    }
+
+    public Command climb() {
+        return Commands.parallel(
+            elevator.climb(),
+            candle.strobeAnimation(COLOR.GREEN)
         );
     }
 
@@ -277,6 +288,10 @@ public class Superstructure extends SubsystemBase {
 
     public AlgaeSubsystem getAlgaeSubsystem() {
         return algae;
+    }
+
+    public Magic getMagic() {
+        return magic;
     }
 
 

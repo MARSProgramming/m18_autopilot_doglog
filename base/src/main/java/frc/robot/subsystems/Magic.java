@@ -121,8 +121,9 @@ public class Magic extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("System/LC/Level", level);
-        SmartDashboard.putNumber("System/LC/RedundantAutomationLogger", AutomationLevel.get());
+        DogLog.log("System/LC/Level", level);
+        DogLog.log("System/LC/Mode", algaeMode);
+        DogLog.log("System/LC/RedundantAutomationLogger", AutomationLevel.get());
 
     }
 

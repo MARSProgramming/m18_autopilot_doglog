@@ -1,7 +1,10 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.led.Animation;
 import com.ctre.phoenix.led.CANdle;
 import com.ctre.phoenix.led.CANdleConfiguration;
+import com.ctre.phoenix.led.RainbowAnimation;
+import com.ctre.phoenix.led.StrobeAnimation;
 
 import dev.doglog.DogLog;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -62,6 +65,40 @@ public class CANdleSubsystem extends SubsystemBase {
         return runOnce(
             () -> ledController.setLEDs(color.getR(), color.getG(), color.getB())
             );
+    }
+
+    // Define the default behavior, which is to have RED LEDs.
+
+    public Command defaultcmd() {
+        return runOnce(
+            () -> ledController.setLEDs(255, 0, 0)
+        );
+    }
+
+    public Command rainbowAnimation() {
+        return runOnce(
+            () -> setRainbowAnimation()
+        );
+    }
+
+    public Command strobeAnimation(COLOR color) {
+        return runOnce(
+            () -> setStrobeAnimation(color)
+        );
+    }
+
+    // methods
+
+        // Method to set a rainbow animation across the LED strip
+    private void setRainbowAnimation() {
+        Animation rainbow = new RainbowAnimation();  // Create rainbow animation
+        ledController.animate(rainbow);  // Apply the rainbow animation to the LED strip
+    }
+
+    // Method to set a strobe animation with the given color and speed
+    private void setStrobeAnimation(COLOR color) {
+        Animation strobe = new StrobeAnimation(color.getR(), color.getG(), color.getB());  // Create strobe animation
+        ledController.animate(strobe);  // Apply the strobe animation to the LED strip
     }
 
     

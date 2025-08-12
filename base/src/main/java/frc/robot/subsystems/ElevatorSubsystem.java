@@ -141,8 +141,7 @@ public class ElevatorSubsystem extends SubsystemBase{
     }
 
 
-    // Setpoint commands will terminate after a cooldown. This is to prevent a firmware auto-disable if the elevator is commanded for too long.
-    // Furthermore, robot elevator actions should not take longer than 5-8 seconds. 
+
 
     public Command goToSetpointL4() {
         return runEnd(() -> {
