@@ -191,7 +191,7 @@ public class Superstructure extends SubsystemBase {
         );
     }
 
-    // A utility command for intaking algae, and once a control is false, the elevator will raise slightly to allow the algae to be released.
+    // A utility command for intaking algae, and once a control is false, the elevator will raise slightly to aimitlow the algae to be released.
     public Command intakeAlgaeAndRaiseElevatorOnFalse() {
         return runEnd(() -> {
             algae.intake();

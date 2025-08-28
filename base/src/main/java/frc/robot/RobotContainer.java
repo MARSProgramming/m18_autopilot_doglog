@@ -45,6 +45,7 @@ public class RobotContainer {
           SteerRequestType.MotionMagicExpo); // Use Closed-loop control for drive motors at low speeds
 
   private final CommandXboxController Pilot = new CommandXboxController(0);
+  private final CommandXboxController test = new CommandXboxController(2);
 
   public final AlgaeSubsystem algae = new AlgaeSubsystem();
   public final CoralSubsystem coral = new CoralSubsystem();
@@ -70,30 +71,14 @@ public class RobotContainer {
 
   private void configureBindings() {
 
-    dt.setDefaultCommand(
-      // Drivetrain will execute this command periodically
-      dt.applyRequest(() -> drive.withVelocityX(Pilot.getLeftY()  * MaxSpeed) // Drive
-                                                                                                           // forward
-                                                                                                           // with
-                                                                                                           // negative
-                                                                                                           // Y (up)
-          .withVelocityY(-Pilot.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-          .withRotationalRate(-Pilot.getRightX() * MaxAngularRate) // Drive counterclockwise with
-                                                                                  // negative X (left)
-      ));
-
     Pilot.leftTrigger().and(algaeModeEnabled.negate())
-          .onTrue(structure.home()); // homing disables an active alignment command
+          .onTrue(structure.home()); // testing the Trigger class
 
     Pilot.leftTrigger().and(algaeModeEnabled)
-          .onTrue(algae.hold()); // a quick press to transition to holding the algae
+          .onTrue(algae.hold()); // Testing the Trigger class
 
-    Pilot.rightTrigger().and(algaeModeEnabled.negate())
-          .onTrue(coral.timedScore()); // Score coral if automation is not working
-
-    Pilot.rightTrigger().and(algaeModeEnabled)
-          .onTrue(algae.spit().withTimeout(3)); // Spit alage
-
+    Pilot.rightTrigger()
+          .onTrue(coral.timedScore()); 
 
     Pilot.leftBumper().and(algaeModeEnabled)
           .whileTrue(structure.intakeAlgaeAndRaiseElevatorOnFalse());
@@ -107,38 +92,47 @@ public class RobotContainer {
     Pilot.rightBumper().and(algaeModeEnabled.negate())
           .onTrue(structure.AlignAndScore(false));
 
-    Pilot.y().and(algaeModeEnabled.negate())
-          .onTrue(Commands.runOnce(() -> magic.setLevel(4)));
-    
-    Pilot.x().and(algaeModeEnabled.negate())
-          .onTrue(Commands.runOnce(() -> magic.setLevel(3)));
+    Pilot.y()
+          .onTrue(getElevatorSub().goToSetpointL2());
 
-    Pilot.b().and(algaeModeEnabled.negate())
-          .onTrue(Commands.runOnce(() -> magic.setLevel(2)));
+    Pilot.x()
+          .onTrue(getElevatorSub().goToSetpointL3());
 
-  
-    Pilot.y().and(algaeModeEnabled)
-          .whileTrue(structure.getAlgaeFromBotReef());
-    
-    Pilot.x().and(algaeModeEnabled)
-          .whileTrue(structure.getAlgaeFromTopReef());
-
-    Pilot.b().and(algaeModeEnabled)
-          .whileTrue(structure.snapToAlgaeAndProcess(
-            () -> -Pilot.getLeftX() * MaxSpeed,
-            () -> -Pilot.getLeftY() * MaxSpeed, 
-            0.7));
-
-    Pilot.povUp().onTrue(structure.prepClimb()); 
-// Pilot should note that failed climbs can easily be reset with prepClimb(), as all setpoints command the servo back to 0 (safe)
-    Pilot.back().whileTrue(structure.climb());
+    Pilot.a()
+          .onTrue(getElevatorSub().goToSetpointL4());
 
 
     Pilot.a()
           .onTrue(Commands.runOnce(() -> magic.toggleAlgaeMode()));
+
+    dt.setDefaultCommand(
+            // Drivetrain will execute this command periodically
+            dt.applyRequest(() -> drive.withVelocityX(Pilot.getLeftY()  * MaxSpeed) // Drive
+                                                                                                                 // forward
+                                                                                                                 // with
+                                                                                                                 // negative
+                                                                                                                 // Y (up)
+                .withVelocityY(-Pilot.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                .withRotationalRate(-Pilot.getRightX() * MaxAngularRate) // Drive counterclockwise with
+                                                                                        // negative X (left)
+            ));
+  }
+
+  private void configureTestBindings() {
+      test.leftTrigger().whileTrue(elevator.testVoltageCommand(-2));
+      test.leftTrigger().whileTrue(elevator.testVoltageCommand(2));
+      test.a().whileTrue(coral.testCoralMotor());
+      test.leftBumper().whileTrue(algae.intakeWithStop());
+      test.rightBumper().whileTrue(algae.spitWithStop());
+
+
   }
 
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
+  }
+
+  public ElevatorSubsystem getElevatorSub() {
+      return this.elevator;
   }
 }

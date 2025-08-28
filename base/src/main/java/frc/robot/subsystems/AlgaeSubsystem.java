@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import dev.doglog.DogLog;
@@ -12,7 +13,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class AlgaeSubsystem extends SubsystemBase {
 
-  SparkMax algae = new SparkMax(12, MotorType.kBrushless);
+  SparkMax algae = new SparkMax(11, MotorType.kBrushless);
 
   // default values 
 
@@ -50,6 +51,29 @@ public class AlgaeSubsystem extends SubsystemBase {
         algae.set(tunableIntake.get());
     });
   }
+
+  public Command intakeWithStop() {
+    return runEnd(() -> {
+        //setPercentage(DynamicConstants.Algae.intakePercent);
+        algae.set(1);
+    },
+    () -> {
+      algae.set(0);
+  
+    });
+  }
+
+  public Command spitWithStop() {
+    return runEnd(() -> {
+        //setPercentage(DynamicConstants.Algae.intakePercent);
+        algae.set(-1);
+    },
+    () -> {
+      algae.set(0);
+  
+    });
+  }
+
 
   public Command spit() {
     return run(() -> {

@@ -53,7 +53,7 @@ public class ElevatorSubsystem extends SubsystemBase{
         master = new TalonFX(Constants.CAN_IDS.ELEVATOR.ELEVATOR_MASTER, "CAN-2");
         follower = new TalonFX(Constants.CAN_IDS.ELEVATOR.ELEVATOR_FOLLOWER, "CAN-2");
         servo = new Servo(Constants.PWM_IDS.SERVO);
-
+        limit = new DigitalInput(Constants.DIO_IDS.CLIMB_LIMIT);
         voltageRequest = new VoltageOut(0);
         motionRequest = new MotionMagicVoltage(0);
 
@@ -139,6 +139,14 @@ public class ElevatorSubsystem extends SubsystemBase{
         }).until(() -> isNearPosition(targetedBumpUp));
    
     }
+
+    public Command testVoltageCommand(double voltage) {
+        return runEnd(() -> {
+            master.setControl(voltageRequest.withOutput(voltage));
+        }, () -> {
+          master.set(0);
+        });
+      }
 
 
 
@@ -236,6 +244,10 @@ public class ElevatorSubsystem extends SubsystemBase{
         return master.getPosition().getValueAsDouble();
     }
 
+    public boolean getLimit() {
+        return !limit.get();
+    }
+
     @Override
     public void periodic() {
         DogLog.log("Elevator/Master/Position", master.getPosition().getValueAsDouble());
@@ -245,14 +257,14 @@ public class ElevatorSubsystem extends SubsystemBase{
 
         DogLog.log("Elevator/Master/DeviceTemp", master.getDeviceTemp().getValueAsDouble());
         DogLog.log("Elevator/Follower/DeviceTemp", follower.getDeviceTemp().getValueAsDouble());
-        DogLog.log("Elevator/Limit", !limit.get());
+       DogLog.log("Elevator/Limit", getLimit());
 
         if (master.getDeviceTemp().getValueAsDouble() > 60.0 || follower.getDeviceTemp().getValueAsDouble() > 60.0) {
             DogLog.logFault("HOT CAUTION - Elevator", AlertType.kWarning);
         }
 
-        if (!limit.get() && (master.getPosition().getValueAsDouble() != 0)) {
-            master.setPosition(0);
-          }
+       if (getLimit() && (master.getPosition().getValueAsDouble() != 0)) {
+           master.setPosition(0);
+         }
     }
 }
