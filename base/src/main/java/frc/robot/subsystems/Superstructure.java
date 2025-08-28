@@ -71,7 +71,7 @@ public class Superstructure extends SubsystemBase {
             Translation2d velocities = getDriveVelocitiesAsTranslation2d();
             Pose2d currentPose = dt.getState().Pose;
 
-            APResult output = Constants.AutopilotConstants.kAutopilot.calculate(currentPose, velocities, alignmentTarget);
+            APResult output = Constants.AutopilotConstants.kAutopilot.calculate(currentPose, dt.getState().Speeds, alignmentTarget);
 
             dt.setControl(headingAwareRequest
             .withVelocityX(output.vx())
@@ -103,7 +103,7 @@ public class Superstructure extends SubsystemBase {
             Translation2d velocities = getDriveVelocitiesAsTranslation2d();
             Pose2d currentPose = dt.getState().Pose;
 
-            APResult output = Constants.AutopilotConstants.kAutopilot.calculate(currentPose, velocities, target);
+            APResult output = Constants.AutopilotConstants.kAutopilot.calculate(currentPose, dt.getState().Speeds, target);
 
             dt.setControl(headingAwareRequest
             .withVelocityX(output.vx())
