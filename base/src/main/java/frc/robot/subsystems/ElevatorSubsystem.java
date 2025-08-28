@@ -101,7 +101,7 @@ public class ElevatorSubsystem extends SubsystemBase{
 
     public Command zero() {
         return runEnd(() -> {
-            master.setControl(voltageRequest.withOutput(elevatorZeroVoltage.get()));
+            master.setControl(voltageRequest.withOutput(-6));
         }, () -> {
             DogLog.log("Elevator/CurrentSetpointReached", "HOME");
             master.set(0);
@@ -142,7 +142,8 @@ public class ElevatorSubsystem extends SubsystemBase{
 
     public Command testVoltageCommand(double voltage) {
         return runEnd(() -> {
-            master.setControl(voltageRequest.withOutput(voltage));
+            servo.set(0);
+        master.setControl(voltageRequest.withOutput(voltage));
         }, () -> {
           master.set(0);
         });
@@ -252,6 +253,7 @@ public class ElevatorSubsystem extends SubsystemBase{
     public void periodic() {
         DogLog.log("Elevator/Master/Position", master.getPosition().getValueAsDouble());
         DogLog.log("Elevator/Master/Velocity", master.getVelocity().getValueAsDouble());
+        DogLog.log("Elevator/Master/Voltage", master.getMotorVoltage().getValueAsDouble());
         DogLog.log("Elevator/Master/Output", master.get());
         DogLog.log("Elevator/Master/OutputCurrent", master.getStatorCurrent().getValueAsDouble());
 

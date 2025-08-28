@@ -43,8 +43,11 @@ public class CoralSubsystem extends SubsystemBase {
 
   // Default Commands
   public Command run(double percent) {
-    return run(() -> {
+    return runEnd(() -> {
         coral.set(TalonSRXControlMode.PercentOutput, percent);
+    },
+    () -> {
+        coral.set(TalonSRXControlMode.PercentOutput, 0);
     });
   }
 
@@ -75,7 +78,7 @@ public class CoralSubsystem extends SubsystemBase {
 
   // Timed scoring commands
   public Command timedScore() {
-    return run(tunableOutputHigh.get()).withTimeout(tunableTimedThreshold.get());
+    return run(tunableOutputHigh.get()).withTimeout(tunableTimedThreshold.get()).andThen(passive());
   }
 
   public Command timedLowScore() {
